@@ -103,7 +103,7 @@ class TMDBService
 
     protected function getUnwantedTvGenres()
     {
-        return Cache::remember('unwanted_tv_genres', now()->addMinutes(1), function () {
+        return Cache::remember('unwanted_tv_genres', now()->addDay(), function () {
             $list = $this->request('/genre/tv/list');
 
             $excludeNames = [
@@ -126,7 +126,7 @@ class TMDBService
 
     protected function getUnwantedMovieGenres()
     {
-        return Cache::remember('unwanted_movie_genres', now()->addMinutes(1), function () {
+        return Cache::remember('unwanted_movie_genres', now()->addDay(), function () {
             $list = $this->request('/genre/tv/list');
 
             $excludeNames = [

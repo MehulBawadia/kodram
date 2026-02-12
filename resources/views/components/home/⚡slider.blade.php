@@ -1,15 +1,13 @@
 <?php
 
-use App\Services\TMDBService;
 use Livewire\Component;
 
 new class extends Component {
-    public $items;
+    public $items = [];
 
-    public function mount(TMDBService $tmdb)
+    public function mount($items = [])
     {
-        $this->items = $tmdb->getSlidersForHomePage();
-        // dd($this->items);
+        $this->items = $items;
     }
 };
 ?>

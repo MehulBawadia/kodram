@@ -9,7 +9,13 @@ new class extends Component
 
     public function mount(TMDBService $tmdb)
     {
-        $this->items = $tmdb->getPopularMovies();
+        $data = $tmdb->getPopularMovies();
+
+        $this->items = collect($data['results'] ?? [])
+            ->filter(fn ($item) => !empty($item['poster_path']))
+            ->take(12)
+            ->values()
+            ->toArray();
     }
 };
 ?>

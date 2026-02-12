@@ -57,7 +57,7 @@ class TMDBService
 
     public function getPopularMovies()
     {
-        $movies = $this->request('/discover/movie', [
+        return $this->request('/discover/movie', [
             'air_date.lte' => today()->toDateString(),
             'with_original_language' => 'ko',
             'watch_region' => 'KR',
@@ -65,12 +65,40 @@ class TMDBService
             'vote_average.lte' => 10,
             'without_genres' => $this->getUnwantedMovieGenres(),
         ]);
+    }
 
-        return collect($movies['results'] ?? [])
-            ->filter(fn ($item) => ! empty($item['poster_path']))
-            ->take(12)
-            ->values()
-            ->toArray();
+    public function getSlidersForHomePage()
+    {
+        return Cache::remember('sliders_home_page', now()->addHour(), function () {
+            $dramas = $this->getPopularTvSeries()['results'] ?? [];
+            $series = collect($dramas)
+                ->sortByDesc('vote_average')
+                ->take(5);
+
+            $movies = $this->getPopularMovies()['results'] ?? [];
+            $movies = collect($movies)
+                ->sortByDesc('vote_average')
+                ->take(5);
+
+            $combined = $series->map(function ($item) {
+                return [
+                    ...$item,
+                    'type' => 'tv',
+                ];
+            })->merge($movies->map(function ($item) {
+                return [
+                    ...$item,
+                    'type' => 'movie',
+                ];
+            }));
+
+            return $combined
+                ->filter(fn ($item) => ! empty($item['backdrop_path']))
+                ->shuffle()
+                ->take(4)
+                ->values()
+                ->toArray();
+        });
     }
 
     protected function getUnwantedTvGenres()

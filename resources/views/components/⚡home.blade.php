@@ -11,7 +11,7 @@ new class extends Component {
 ?>
 
 <div>
-    <livewire:home.hero />
+    <livewire:home.slider />
 
     <livewire:home.popular-tv />
 

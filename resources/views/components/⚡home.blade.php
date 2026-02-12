@@ -13,5 +13,5 @@ new class extends Component {
 <div>
     <livewire:home.hero />
 
-    <livewire:home.trending-tv />
+    <livewire:home.popular-tv />
 </div>

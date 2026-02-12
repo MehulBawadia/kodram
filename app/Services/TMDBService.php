@@ -57,14 +57,16 @@ class TMDBService
 
     public function getPopularMovies()
     {
-        return $this->request('/discover/movie', [
-            'air_date.lte' => today()->toDateString(),
-            'with_original_language' => 'ko',
-            'watch_region' => 'KR',
-            'sort_by' => 'popularity.desc',
-            'vote_average.lte' => 10,
-            'without_genres' => $this->getUnwantedMovieGenres(),
-        ]);
+        return Cache::remember('popular_movies', now()->addHour(), function () {
+            return $this->request('/discover/movie', [
+                'air_date.lte' => today()->toDateString(),
+                'with_original_language' => 'ko',
+                'watch_region' => 'KR',
+                'sort_by' => 'popularity.desc',
+                'vote_average.lte' => 10,
+                'without_genres' => $this->getUnwantedMovieGenres(),
+            ]);
+        });
     }
 
     public function getSlidersForHomePage()

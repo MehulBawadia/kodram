@@ -73,5 +73,40 @@
     </footer>
 
     @livewireScripts
+
+    <script>
+        document.addEventListener('alpine:init', () => {
+            Alpine.data('sliderComponent', (totalSlides) => ({
+                active: 0,
+                total: totalSlides,
+                interval: null,
+
+                init() {
+                    this.start();
+                },
+
+                start() {
+                    if (this.interval) return;
+
+                    this.interval = setInterval(() => {
+                        this.next();
+                    }, 6000);
+                },
+
+                next() {
+                    this.active = (this.active + 1) % this.total;
+                },
+
+                prev() {
+                    this.active = (this.active - 1 + this.total) % this.total;
+                },
+
+                go(index) {
+                    this.active = index;
+                }
+            }));
+        });
+    </script>
+
 </body>
 </html>

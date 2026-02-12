@@ -9,59 +9,67 @@ new class extends Component {
     public function mount(TMDBService $tmdb)
     {
         $this->items = $tmdb->getSlidersForHomePage();
+        // dd($this->items);
     }
 };
 ?>
 
-<div
-    x-data="{ active: 0, total: {{ count($items) }} }"
-    x-init="setInterval(() => active = (active + 1) % total, 5000)"
-    class="relative overflow-hidden"
+<div class="relative w-full h-[75vh] overflow-hidden"
+    wire:ignore
+    x-data="sliderComponent({{ count($items) }})"
+    x-init="init()"
 >
-    <div
-        class="flex transition-transform duration-700 ease-in-out"
-        :style="'transform: translateX(-' + (active * 100) + '%)'"
-    >
+    <div class="flex h-full transition-transform duration-700 ease-in-out"
+         :style="`transform: translateX(-${active * 100}%);`">
 
         @foreach($items as $item)
-            @php
-                $title = $item['type'] === 'movie'
-                    ? $item['title']
-                    : $item['name'];
-            @endphp
+            <div class="w-full shrink-0 relative">
+                <div class="absolute inset-0 bg-cover bg-center" style="background-image: url('https://image.tmdb.org/t/p/original{{ $item['backdrop_path'] ?? $item['poster_path'] }}');"></div>
 
-            <div class="min-w-full relative h-[70vh]">
-                <img src="https://image.tmdb.org/t/p/w780{{ $item['backdrop_path'] }}" class="absolute inset-0 w-full h-full object-cover" />
+                <div class="absolute inset-0 bg-linear-to-t from-black/80 via-black/40 to-transparent"></div>
 
-                <div class="absolute inset-0 bg-linear-to-t from-black via-black/70 to-transparent"></div>
+                <!-- Content -->
+                <div class="absolute bottom-0 w-full p-6 text-white z-10">
+                    <div class="max-w-2xl space-y-4">
+                        <div class="flex items-center gap-3 text-sm">
+                            <span class="px-3 py-1 rounded-full bg-indigo-500/90 text-white font-medium">
+                                {{ strtoupper($item['type'] === 'tv' ? 'TV Series' : 'Movie') }}
+                            </span>
 
-                <div class="absolute bottom-0 p-6 text-white space-y-3">
-                    <span class="text-xs bg-indigo-100 text-indigo-800 px-3 py-1 rounded-full uppercase tracking-wide">
-                        {{ $item['type'] === 'movie' ? 'Movie' : 'Series' }}
-                    </span>
+                            <span class="flex items-center gap-1 text-yellow-300 font-semibold">
+                                ⭐ {{ number_format($item['vote_average'], 1) }}
+                            </span>
 
-                    <h1 class="mt-2 text-2xl font-bold">
-                        {{ $title }}
-                    </h1>
+                            <span class="text-gray-300">
+                                {{ \Carbon\Carbon::parse($item['first_air_date'] ?? $item['release_date'])->format('Y') ?? '' }}
+                            </span>
+                        </div>
 
-                    <div class="text-sm text-gray-300">
-                        ⭐ {{ Number::abbreviate($item['vote_average'], 1) }}
+                        <h1 class="text-3xl md:text-5xl font-bold leading-tight drop-shadow-lg">
+                            {{ $item['title'] ?? $item['name'] }}
+                        </h1>
+
+                        <p class="text-sm md:text-base text-gray-200 line-clamp-3 max-w-xl">
+                            {{ $item['overview'] }}
+                        </p>
+
+                        <div class="pt-3">
+                            <a href="{{ url('/', ['type' => $item['type'], 'id' => $item['id']]) }}" class="inline-block px-8 py-3 rounded-lg font-semibold text-white bg-linear-to-r from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 transition-all duration-300 shadow-lg shadow-indigo-500/30 hover:shadow-indigo-500/50 hover:scale-105">
+                                View Details
+                            </a>
+                        </div>
                     </div>
-
-                    <a href="{{ url('/', [$item['type'], $item['id']]) }}" class="inline-block mt-2 px-4 py-2 bg-linear-to-r from-indigo-500 to-purple-600 rounded-xl text-sm font-semibold">
-                        View Details
-                    </a>
                 </div>
             </div>
         @endforeach
     </div>
 
-    <div class="absolute bottom-4 right-4 flex gap-2">
-        <template x-for="i in total">
-            <div class="w-2 h-2 rounded-full cursor-pointer transition-all"
-                :class="active === i-1 ? 'bg-indigo-500' : 'bg-white/40'"
-                @click="active = i-1"
-            ></div>
-        </template>
+    <div class="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-20">
+        @foreach($items as $index => $item)
+            <button @click="go({{ $index }})"
+                    class="w-3 h-3 rounded-full cursor-pointer"
+                    :class="active === {{ $index }} ? 'bg-white' : 'bg-white/40'">
+            </button>
+        @endforeach
     </div>
 </div>

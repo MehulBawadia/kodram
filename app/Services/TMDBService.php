@@ -97,7 +97,9 @@ class TMDBService
             }));
 
             return $combined
-                ->filter(fn ($item) => ! empty($item['backdrop_path']))
+                ->filter(function ($item) {
+                    return ! empty($item['backdrop_path']) || ! empty($item['poster_path']);
+                })
                 ->shuffle()
                 ->take(4)
                 ->values()

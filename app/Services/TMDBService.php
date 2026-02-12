@@ -55,7 +55,25 @@ class TMDBService
         ]);
     }
 
-    public function getUnwantedTvGenres()
+    public function getPopularMovies()
+    {
+        $movies = $this->request('/discover/movie', [
+            'air_date.lte' => today()->toDateString(),
+            'with_original_language' => 'ko',
+            'watch_region' => 'KR',
+            'sort_by' => 'popularity.desc',
+            'vote_average.lte' => 10,
+            'without_genres' => $this->getUnwantedMovieGenres(),
+        ]);
+
+        return collect($movies['results'] ?? [])
+            ->filter(fn ($item) => ! empty($item['poster_path']))
+            ->take(12)
+            ->values()
+            ->toArray();
+    }
+
+    protected function getUnwantedTvGenres()
     {
         return Cache::remember('unwanted_tv_genres', now()->addMinutes(1), function () {
             $list = $this->request('/genre/tv/list');
@@ -67,6 +85,25 @@ class TMDBService
                 'Reality',
                 'Documentary',
                 'Talk',
+            ];
+
+            $genres = collect($list['genres'] ?? []);
+
+            return $genres
+                ->filter(fn ($genre) => in_array($genre['name'], $excludeNames))
+                ->pluck('id')
+                ->implode(',');
+        });
+    }
+
+    protected function getUnwantedMovieGenres()
+    {
+        return Cache::remember('unwanted_movie_genres', now()->addMinutes(1), function () {
+            $list = $this->request('/genre/tv/list');
+
+            $excludeNames = [
+                'Animation',
+                'Documentary',
             ];
 
             $genres = collect($list['genres'] ?? []);

@@ -67,6 +67,7 @@ class TMDBService
                 'sort_by' => 'popularity.desc',
                 'vote_average.lte' => 10,
                 'without_genres' => $this->getUnwantedMovieGenres(),
+                'without_keywords' => '155477',
             ]);
         });
     }
@@ -143,6 +144,44 @@ class TMDBService
         });
     }
 
+    public function discoverMovies($year = null, $genres = [], $sort = 'popularity.desc', $page = 1)
+    {
+        $query = [
+            'primary_release_date.lte' => today()->toDateString(),
+            'primary_release_date.gte' => '2000-01-01',
+            'with_original_language' => 'ko',
+            'watch_region' => 'KR',
+            'sort_by' => $sort,
+            'vote_average.gte' => 3,
+            'with_runtime.gte' => 30,
+            'vote_count.gte' => 50,
+            'without_genres' => $this->getUnwantedMovieGenres(),
+            'page' => $page,
+            'without_keywords' => '155477',
+        ];
+
+        if ($year) {
+            $query['primary_release_year'] = $year;
+        }
+
+        if (! empty($genres)) {
+            $genres = array_map('intval', $genres);
+            sort($genres);
+            $query['with_genres'] = implode('|', $genres);
+        }
+
+        $cacheKey = md5(json_encode([
+            'year' => $year,
+            'genres' => $genres,
+            'sort' => $sort,
+            'page' => $page,
+        ]));
+
+        return Cache::remember("filtered_movies_{$cacheKey}", now()->addHour(), function () use ($query) {
+            return $this->request('/discover/movie', $query);
+        });
+    }
+
     public function getTvGenres()
     {
         return Cache::remember('tv_genres', now()->addDay(), function () {
@@ -150,6 +189,21 @@ class TMDBService
             $genres = collect($list['genres'] ?? []);
 
             $unwantedGenreIds = explode(',', $this->getUnwantedTvGenres());
+
+            return $genres
+                ->filter(function ($genre) use ($unwantedGenreIds) {
+                    return ! in_array($genre['id'], $unwantedGenreIds);
+                });
+        });
+    }
+
+    public function getMoviesGenres()
+    {
+        return Cache::remember('movie_genres', now()->addDay(), function () {
+            $list = $this->request('/genre/movie/list');
+            $genres = collect($list['genres'] ?? []);
+
+            $unwantedGenreIds = explode(',', $this->getUnwantedMovieGenres());
 
             return $genres
                 ->filter(function ($genre) use ($unwantedGenreIds) {
@@ -185,11 +239,12 @@ class TMDBService
     protected function getUnwantedMovieGenres()
     {
         return Cache::remember('unwanted_movie_genres', now()->addDay(), function () {
-            $list = $this->request('/genre/tv/list');
+            $list = $this->request('/genre/movie/list');
 
             $excludeNames = [
                 'Animation',
                 'Documentary',
+                'Music',
             ];
 
             $genres = collect($list['genres'] ?? []);

@@ -107,6 +107,57 @@ class TMDBService
         });
     }
 
+    public function discoverDramas($year = null, $genres = [], $sort = 'popularity.desc', $page = 1)
+    {
+        $query = [
+            'air_date.lte' => today()->toDateString(),
+            'with_original_language' => 'ko',
+            'watch_region' => 'KR',
+            'sort_by' => $sort,
+            'vote_average.gte' => 3,
+            'without_genres' => $this->getUnwantedTvGenres(),
+            'page' => $page,
+            'with_type' => '2|4', // 2 = miniseries, 4 = Scripted
+            'with_status' => '0|1|2|3', // 0 = OnGoing, 1 = Upcoming, 2 = In Production, 3 = Ended
+        ];
+
+        if ($year) {
+            $query['first_air_date_year'] = $year;
+        }
+
+        if (! empty($genres)) {
+            $genres = array_map('intval', $genres);
+            sort($genres);
+            $query['with_genres'] = implode('|', $genres);
+        }
+
+        $cacheKey = md5(json_encode([
+            'year' => $year,
+            'genres' => $genres,
+            'sort' => $sort,
+            'page' => $page,
+        ]));
+
+        return Cache::remember("filtered_dramas_{$cacheKey}", now()->addHour(), function () use ($query) {
+            return $this->request('/discover/tv', $query);
+        });
+    }
+
+    public function getTvGenres()
+    {
+        return Cache::remember('tv_genres', now()->addDay(), function () {
+            $list = $this->request('/genre/tv/list');
+            $genres = collect($list['genres'] ?? []);
+
+            $unwantedGenreIds = explode(',', $this->getUnwantedTvGenres());
+
+            return $genres
+                ->filter(function ($genre) use ($unwantedGenreIds) {
+                    return ! in_array($genre['id'], $unwantedGenreIds);
+                });
+        });
+    }
+
     protected function getUnwantedTvGenres()
     {
         return Cache::remember('unwanted_tv_genres', now()->addDay(), function () {
@@ -119,6 +170,7 @@ class TMDBService
                 'Reality',
                 'Documentary',
                 'Talk',
+                'Soap',
             ];
 
             $genres = collect($list['genres'] ?? []);

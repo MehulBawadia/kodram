@@ -34,7 +34,7 @@
                     Home
                 </a>
 
-                <a href="{{ url('/') }}" class="transition hover:text-indigo-400">
+                <a href="{{ route('dramas') }}" class="transition hover:text-indigo-400">
                     Dramas
                 </a>
 

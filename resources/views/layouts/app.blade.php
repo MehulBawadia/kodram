@@ -17,6 +17,12 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
     @livewireStyles
+
+    <style>
+        [x-cloak] {
+            display: none !important;
+        }
+    </style>
 </head>
 
 <body class="bg-linear-to-br flex min-h-screen flex-col from-slate-950 via-slate-900 to-slate-950 font-['Inter'] text-gray-200">

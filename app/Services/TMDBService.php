@@ -144,6 +144,15 @@ class TMDBService
         });
     }
 
+    public function getDramaDetails($id)
+    {
+        return Cache::remember("drama_details_{$id}", now()->addDay(), function () use ($id) {
+            return $this->request("/tv/{$id}", [
+                'append_to_response' => 'credits,images,similar',
+            ]);
+        });
+    }
+
     public function discoverMovies($year = null, $genres = [], $sort = 'popularity.desc', $page = 1)
     {
         $query = [

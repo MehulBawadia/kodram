@@ -150,7 +150,7 @@ new class extends Component {
 
             <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
                 @foreach($dramas as $index => $show)
-                    <div class="relative group rounded-2xl overflow-hidden cursor-pointer" wire:key="drama-{{ $show['id'] }}-{{ $index }}">
+                    <a href="{{ route('dramas.show', ['id' => $show['id']]) }}" class="relative group rounded-2xl overflow-hidden cursor-pointer" wire:key="drama-{{ $show['id'] }}-{{ $index }}">
 
                         <img src="https://image.tmdb.org/t/p/w500{{ $show['poster_path'] }}" alt="{{ $show['name'] }}" class="w-full aspect-2/3 object-cover transition duration-500 ease-out group-hover:scale-110" />
 
@@ -180,7 +180,7 @@ new class extends Component {
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    </a>
                 @endforeach
 
                 @if($hasMorePages)

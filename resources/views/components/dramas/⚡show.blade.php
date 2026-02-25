@@ -11,6 +11,9 @@ new class extends Component
     public $heroSectionLoaded = false;
     public $heroSection = null;
 
+    public $castSectionLoaded = false;
+    public $castSection = null;
+
     public function mount($id)
     {
         $this->dramaId = $id;
@@ -30,6 +33,16 @@ new class extends Component
         $this->heroSection = $this->drama;
         $this->heroSectionLoaded = true;
     }
+
+    public function loadCastSection()
+    {
+        $this->castSectionLoaded = false;
+
+       $this->castSection = collect($this->drama['credits']['cast'] ?? [])
+            ->toArray();
+
+        $this->castSectionLoaded = true;
+    }
 };
 ?>
 
@@ -44,5 +57,9 @@ new class extends Component
                 <livewire:dramas.hero :heroSection="$heroSection" />
             @endif
         </div>
+    </div>
+
+    <div wire:init="loadCastSection" class="mt-16">
+        <livewire:dramas.cast :castSection="$castSection" :castSectionLoaded="$castSectionLoaded" />
     </div>
 </div>

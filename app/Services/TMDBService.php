@@ -153,6 +153,13 @@ class TMDBService
         });
     }
 
+    public function getDramaSeasonDetails($id, $seasonNumber)
+    {
+        return Cache::remember("drama_season_details_{$id}_{$seasonNumber}", now()->addDay(), function () use ($id, $seasonNumber) {
+            return $this->request("/tv/{$id}/season/{$seasonNumber}");
+        });
+    }
+
     public function discoverMovies($year = null, $genres = [], $sort = 'popularity.desc', $page = 1)
     {
         $query = [

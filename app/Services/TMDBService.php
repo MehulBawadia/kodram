@@ -93,7 +93,7 @@ class TMDBService
             })->merge($movies->map(function ($item) {
                 return [
                     ...$item,
-                    'type' => 'movie',
+                    'type' => 'movies',
                 ];
             }));
 
@@ -200,7 +200,6 @@ class TMDBService
 
     public function getMovieDetails($id)
     {
-        cache()->forget("movie_details_{$id}");
         return Cache::remember("movie_details_{$id}", now()->addDay(), function () use ($id) {
             return $this->request("/movie/{$id}", [
                 'append_to_response' => 'credits',

@@ -198,6 +198,16 @@ class TMDBService
         });
     }
 
+    public function getMovieDetails($id)
+    {
+        cache()->forget("movie_details_{$id}");
+        return Cache::remember("movie_details_{$id}", now()->addDay(), function () use ($id) {
+            return $this->request("/movie/{$id}", [
+                'append_to_response' => 'credits',
+            ]);
+        });
+    }
+
     public function getTvGenres()
     {
         return Cache::remember('tv_genres', now()->addDay(), function () {

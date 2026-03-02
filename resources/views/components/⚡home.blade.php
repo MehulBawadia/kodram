@@ -155,7 +155,7 @@ new class extends Component {
 
                 @if($popularMoviesLoaded)
                     @foreach($popularMovies as $show)
-                        <div class="relative group rounded-2xl overflow-hidden cursor-pointer">
+                        <a href="{{ route('movies.show', $show['id']) }}" class="relative group rounded-2xl overflow-hidden cursor-pointer">
                             <img src="https://image.tmdb.org/t/p/w500{{ $show['poster_path'] }}" class="w-full aspect-2/3 object-cover transition duration-500 ease-out group-hover:scale-110" alt="{{ $show['title'] }}" />
 
                             <div class="absolute inset-0 bg-linear-to-t from-black/90 via-black/40 to-transparent transition-opacity duration-500 opacity-80 group-hover:opacity-100"></div>
@@ -183,7 +183,7 @@ new class extends Component {
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        </a>
                     @endforeach
                 @endif
             </div>

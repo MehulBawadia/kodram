@@ -14,6 +14,9 @@ new class extends Component
     public $tvSeriesLoaded = false;
     public $tvSeries = null;
 
+    public $moviesLoaded = false;
+    public $movies = null;
+
     public function mount($id)
     {
         $this->personId = $id;
@@ -54,6 +57,29 @@ new class extends Component
 
         $this->tvSeriesLoaded = true;
     }
+
+    public function loadMovies()
+    {
+        $this->moviesLoaded = false;
+
+        $this->movies = collect($this->person['movie_credits']['cast'])
+            ->filter(function ($tv) {
+                return ! Str::contains(cache('unwanted_movie_genres', ''), $tv['genre_ids']);
+            })
+            ->filter(function ($tv) {
+                return ! blank($tv['poster_path']);
+            })
+            ->filter(function ($tv) {
+                return ! blank($tv['release_date']);
+            })
+            ->sortByDesc(function ($tv) {
+                return \Carbon\Carbon::parse($tv['release_date'])->format('Y-m-d');
+            })
+            ->values()
+            ->toArray();
+
+        $this->moviesLoaded = true;
+    }
 };
 ?>
 
@@ -82,6 +108,22 @@ new class extends Component
         <div wire:cloak wire:show="tvSeriesLoaded">
             @if ($tvSeries)
                 <livewire:person.tv :tvSeries="$tvSeries" />
+            @endif
+        </div>
+    </div>
+
+    <div wire:init="loadMovies" class="mt-16">
+        <h2 class="text-2xl font-bold text-white mb-6">
+            Movies
+        </h2>
+
+        <div wire:cloak wire:show="!moviesLoaded">
+            <livewire:person.movieloader />
+        </div>
+
+        <div wire:cloak wire:show="moviesLoaded">
+            @if ($movies)
+                <livewire:person.movie :movies="$movies" />
             @endif
         </div>
     </div>

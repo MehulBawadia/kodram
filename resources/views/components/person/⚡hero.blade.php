@@ -8,6 +8,7 @@ new class extends Component
 
     public $heroBgImage = null;
     public $gender = null;
+    public $externalIds = null;
 
     public function mount($heroSection)
     {
@@ -16,6 +17,14 @@ new class extends Component
         $this->heroBgImage = collect($heroSection['tv_credits']['cast'])->filter(function ($tv) {
             return ! blank($tv['backdrop_path']);
         })->first()['backdrop_path'];
+
+        $this->externalIds = collect($heroSection['external_ids'])
+            ->only(['instagram_id', 'facebook_id', 'youtube_id', 'tiktok_id', 'twitter_id'])
+            ->filter()
+            ->mapWithKeys(function ($id, $platform) {
+                return [str_replace('_id', '', $platform) => $id];
+            })
+            ->toArray();
 
         $this->getGender();
     }
@@ -83,6 +92,16 @@ new class extends Component
                 <p class="text-gray-300 leading-relaxed mt-6 max-w-3xl">
                     {{ $heroSection['biography'] ?? 'No biography available.' }}
                 </p>
+
+                @if (! blank($externalIds))
+                    <div class="flex justify-center mt-6 space-x-8 w-full bg-white/10 py-2 rounded-2xl backdrop-blur-3xl">
+                    @foreach ($externalIds as $platform => $id)
+                        <a href="https://{{ $platform }}.com/{{ $id }}" target="_blank" rel="noopener" title="View {{ $heroSection['name'] }} on {{ $platform }}">
+                            <img src="/images/{{ $platform }}-logo.svg" alt="{{ $platform }} logo" class="h-12 w-12" />
+                        </a>
+                    @endforeach
+                    </div>
+                @endif
             </div>
         </div>
     </div>

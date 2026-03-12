@@ -212,7 +212,7 @@ class TMDBService
         cache()->forget("person_details_{$id}");
         return Cache::remember("person_details_{$id}", now()->addDay(), function () use ($id) {
             return $this->request("/person/{$id}", [
-                'append_to_response' => 'tv_credits,movie_credits',
+                'append_to_response' => 'tv_credits,movie_credits,external_ids',
             ]);
         });
     }

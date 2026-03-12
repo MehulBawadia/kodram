@@ -52,7 +52,7 @@ new class extends Component {
                         </p>
 
                         <div class="pt-3">
-                            <a href="{{ url('/', ['type' => $item['type'], 'id' => $item['id']]) }}" class="inline-block px-8 py-3 rounded-lg font-semibold text-white bg-linear-to-r from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 transition-all duration-300 shadow-lg shadow-indigo-500/30 hover:shadow-indigo-500/50 hover:scale-105">
+                            <a href="{{ url('/', ['type' => $item['type'] === 'tv' ? 'dramas' : 'movies', 'id' => $item['id']]) }}" class="inline-block px-8 py-3 rounded-lg font-semibold text-white bg-linear-to-r from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 transition-all duration-300 shadow-lg shadow-indigo-500/30 hover:shadow-indigo-500/50 hover:scale-105">
                                 View Details
                             </a>
                         </div>

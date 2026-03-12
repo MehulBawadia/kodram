@@ -35,7 +35,7 @@ new class extends Component
 
         @if($castSectionLoaded)
             @foreach($castSection as $person)
-                <a href="#" class="relative group rounded-2xl overflow-hidden cursor-pointer">
+                <a href="{{ route('person.show', $person['id']) }}" class="relative group rounded-2xl overflow-hidden cursor-pointer">
                     <img src="https://image.tmdb.org/t/p/w500{{ $person['profile_path'] }}" class="w-full aspect-2/3 object-cover transition duration-500 ease-out group-hover:scale-110" alt="{{ $person['name'] }}" />
 
                     <div class="absolute inset-0 bg-linear-to-t from-black/90 via-black/40 to-transparent transition-opacity duration-500 opacity-80 group-hover:opacity-100"></div>

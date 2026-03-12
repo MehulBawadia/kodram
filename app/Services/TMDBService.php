@@ -207,6 +207,16 @@ class TMDBService
         });
     }
 
+    public function getPersonDetails($id)
+    {
+        cache()->forget("person_details_{$id}");
+        return Cache::remember("person_details_{$id}", now()->addDay(), function () use ($id) {
+            return $this->request("/person/{$id}", [
+                'append_to_response' => 'tv_credits,movie_credits',
+            ]);
+        });
+    }
+
     public function getTvGenres()
     {
         return Cache::remember('tv_genres', now()->addDay(), function () {

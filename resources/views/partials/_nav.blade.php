@@ -7,6 +7,10 @@
             </span>
         </a>
 
+        <div class="hidden w-120 md:block">
+            <livewire:search />
+        </div>
+
         <nav class="hidden items-center gap-8 text-sm font-medium md:flex">
             <a href="{{ route('home') }}" class="transition hover:text-indigo-400">
                 Home
@@ -20,9 +24,5 @@
                 Movies
             </a>
         </nav>
-
-        {{-- <div class="hidden w-72 md:block">
-            @livewire('search-bar')
-        </div> --}}
     </div>
 </header>

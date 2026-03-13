@@ -108,6 +108,21 @@ class TMDBService
         });
     }
 
+    public function search($query)
+    {
+        $searchQuery = [
+            'query' => $query,
+        ];
+
+        $cacheKey = md5(json_encode($searchQuery));
+
+        return Cache::remember("search_results_{$cacheKey}", now()->addHour(), function () use ($searchQuery) {
+            $response = $this->request('/search/multi', $searchQuery);
+
+            return $response['results'] ?? [];
+        });
+    }
+
     public function discoverDramas($year = null, $genres = [], $sort = 'popularity.desc', $page = 1)
     {
         $query = [

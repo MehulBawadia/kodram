@@ -4,6 +4,7 @@ namespace App\Services;
 
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Http\Client\ConnectionException;
 
 class TMDBService
 {
@@ -18,58 +19,72 @@ class TMDBService
 
     protected function request(string $endpoint, array $params = [])
     {
-        $overridenParams = array_merge([
+        $params = array_merge([
             'api_key' => $this->apiKey,
         ], $params);
 
-        return Cache::remember(
-            'tmdb_'.md5($endpoint.serialize($overridenParams)),
-            now()->addHour(),
-            function () use ($endpoint, $overridenParams) {
-                return Http::retry(3, 1000)
-                    ->timeout(15)
-                    ->withOptions([
-                        'http_version' => CURL_HTTP_VERSION_1_1,
-                        'connect_timeout' => 5,
-                    ])
-                    ->withHeaders([
-                        'Accept' => 'application/json',
-                        'User-Agent' => config('app.name').'/1.0',
-                    ])
-                    ->get($this->baseUrl.$endpoint, $overridenParams)
-                    ->json();
+        $cacheKey = 'tmdb_'.md5($endpoint.serialize($params));
+
+        // Return cached if exists
+        if (Cache::has($cacheKey)) {
+            return Cache::get($cacheKey);
+        }
+
+        // Small delay to prevent burst requests
+        usleep(100000); // 100ms
+
+        try {
+            $response = Http::retry(
+                3,
+                fn ($attempt) => ($attempt * 300) + rand(50, 150),
+                fn ($exception) => $exception instanceof ConnectionException
+            )
+                ->timeout(15)
+                ->connectTimeout(5)
+                ->withHeaders([
+                    'Accept' => 'application/json',
+                    'User-Agent' => config('app.name').'/1.0',
+                    'Connection' => 'close',
+                ])
+                ->get($this->baseUrl.$endpoint, $params);
+
+            if ($response->successful()) {
+                $data = $response->json();
+
+                // Cache only successful responses
+                Cache::put($cacheKey, $data, now()->addHour());
+
+                return $data;
             }
-        );
-    }
 
-    public function getPopularTvSeries()
-    {
-        return Cache::remember('popular_tv_series', now()->addHour(), function () {
-            return $this->request('/discover/tv', [
-                'air_date.lte' => today()->toDateString(),
-                'with_original_language' => 'ko',
-                'watch_region' => 'KR',
-                'sort_by' => 'popularity.desc',
-                'with_runtime.gte' => 30,
-                'vote_count.gte' => 50,
-                'without_genres' => $this->getUnwantedTvGenres(),
-            ]);
-        });
-    }
+            // Fallback to stale cache if exists
+            $stale = Cache::get($cacheKey);
+            if ($stale) {
+                return $stale;
+            }
 
-    public function getPopularMovies()
-    {
-        return Cache::remember('popular_movies', now()->addHour(), function () {
-            return $this->request('/discover/movie', [
-                'air_date.lte' => today()->toDateString(),
-                'with_original_language' => 'ko',
-                'watch_region' => 'KR',
-                'sort_by' => 'popularity.desc',
-                'vote_average.lte' => 10,
-                'without_genres' => $this->getUnwantedMovieGenres(),
-                'without_keywords' => '155477',
+            logger()->warning('TMDB API failed', [
+                'endpoint' => $endpoint,
+                'params' => $params,
+                'status' => $response->status(),
             ]);
-        });
+
+        } catch (\Throwable $e) {
+
+            // Fallback to stale cache
+            $stale = Cache::get($cacheKey);
+            if ($stale) {
+                return $stale;
+            }
+
+            logger()->error('TMDB connection error', [
+                'endpoint' => $endpoint,
+                'params' => $params,
+                'message' => $e->getMessage(),
+            ]);
+        }
+
+        return [];
     }
 
     public function getSlidersForHomePage()
@@ -98,9 +113,9 @@ class TMDBService
             }));
 
             return $combined
-                ->filter(function ($item) {
-                    return ! empty($item['backdrop_path']) || ! empty($item['poster_path']);
-                })
+                ->filter(fn ($item) =>
+                    ! blank($item['backdrop_path']) || ! blank($item['poster_path'])
+                )
                 ->shuffle()
                 ->take(4)
                 ->values()
@@ -108,19 +123,17 @@ class TMDBService
         });
     }
 
-    public function search($query)
+    public function getPopularTvSeries()
     {
-        $searchQuery = [
-            'query' => $query,
-        ];
-
-        $cacheKey = md5(json_encode($searchQuery));
-
-        return Cache::remember("search_results_{$cacheKey}", now()->addHour(), function () use ($searchQuery) {
-            $response = $this->request('/search/multi', $searchQuery);
-
-            return $response['results'] ?? [];
-        });
+        return $this->request('/discover/tv', [
+            'air_date.lte' => today()->toDateString(),
+            'with_original_language' => 'ko',
+            'watch_region' => 'KR',
+            'sort_by' => 'popularity.desc',
+            'with_runtime.gte' => 30,
+            'vote_count.gte' => 50,
+            'without_genres' => $this->getUnwantedTvGenres(),
+        ]);
     }
 
     public function discoverDramas($year = null, $genres = [], $sort = 'popularity.desc', $page = 1)
@@ -133,8 +146,8 @@ class TMDBService
             'vote_average.gte' => 3,
             'without_genres' => $this->getUnwantedTvGenres(),
             'page' => $page,
-            'with_type' => '2|4', // 2 = miniseries, 4 = Scripted
-            'with_status' => '0|1|2|3', // 0 = OnGoing, 1 = Upcoming, 2 = In Production, 3 = Ended
+            'with_type' => '2|4',
+            'with_status' => '0|1|2|3',
         ];
 
         if ($year) {
@@ -147,32 +160,36 @@ class TMDBService
             $query['with_genres'] = implode('|', $genres);
         }
 
-        $cacheKey = md5(json_encode([
-            'year' => $year,
-            'genres' => $genres,
-            'sort' => $sort,
-            'page' => $page,
-        ]));
-
-        return Cache::remember("filtered_dramas_{$cacheKey}", now()->addHour(), function () use ($query) {
-            return $this->request('/discover/tv', $query);
-        });
+        return $this->request('/discover/tv', $query);
     }
 
     public function getDramaDetails($id)
     {
-        return Cache::remember("drama_details_{$id}", now()->addDay(), function () use ($id) {
-            return $this->request("/tv/{$id}", [
-                'append_to_response' => 'credits,images,similar',
-            ]);
-        });
+        return $this->request("/tv/{$id}", [
+            'append_to_response' => 'credits,images,similar',
+        ]);
     }
 
     public function getDramaSeasonDetails($id, $seasonNumber)
     {
-        return Cache::remember("drama_season_details_{$id}_{$seasonNumber}", now()->addDay(), function () use ($id, $seasonNumber) {
-            return $this->request("/tv/{$id}/season/{$seasonNumber}");
-        });
+        return Cache::remember(
+            "drama_season_details_{$id}_{$seasonNumber}",
+            now()->addHours(8),
+            fn () => $this->request("/tv/{$id}/season/{$seasonNumber}")
+        );
+    }
+
+    public function getPopularMovies()
+    {
+        return $this->request('/discover/movie', [
+            'primary_release_date.lte' => today()->toDateString(),
+            'with_original_language' => 'ko',
+            'watch_region' => 'KR',
+            'sort_by' => 'popularity.desc',
+            'vote_average.lte' => 10,
+            'without_genres' => $this->getUnwantedMovieGenres(),
+            'without_keywords' => '155477',
+        ]);
     }
 
     public function discoverMovies($year = null, $genres = [], $sort = 'popularity.desc', $page = 1)
@@ -201,64 +218,48 @@ class TMDBService
             $query['with_genres'] = implode('|', $genres);
         }
 
-        $cacheKey = md5(json_encode([
-            'year' => $year,
-            'genres' => $genres,
-            'sort' => $sort,
-            'page' => $page,
-        ]));
-
-        return Cache::remember("filtered_movies_{$cacheKey}", now()->addHour(), function () use ($query) {
-            return $this->request('/discover/movie', $query);
-        });
+        return $this->request('/discover/movie', $query);
     }
 
     public function getMovieDetails($id)
     {
-        return Cache::remember("movie_details_{$id}", now()->addDay(), function () use ($id) {
-            return $this->request("/movie/{$id}", [
-                'append_to_response' => 'credits',
-            ]);
-        });
+        return $this->request("/movie/{$id}", [
+            'append_to_response' => 'credits',
+        ]);
+    }
+
+    public function search($query)
+    {
+        return $this->request('/search/multi', [
+            'query' => $query,
+        ])['results'] ?? [];
     }
 
     public function getPersonDetails($id)
     {
-        return Cache::remember("person_details_{$id}", now()->addDay(), function () use ($id) {
-            return $this->request("/person/{$id}", [
-                'append_to_response' => 'tv_credits,movie_credits,external_ids',
-            ]);
-        });
+        return $this->request("/person/{$id}", [
+            'append_to_response' => 'tv_credits,movie_credits,external_ids',
+        ]);
     }
 
     public function getTvGenres()
     {
-        return Cache::remember('tv_genres', now()->addDay(), function () {
-            $list = $this->request('/genre/tv/list');
-            $genres = collect($list['genres'] ?? []);
+        $list = $this->request('/genre/tv/list');
+        $genres = collect($list['genres'] ?? []);
 
-            $unwantedGenreIds = explode(',', $this->getUnwantedTvGenres());
+        $unwanted = explode(',', $this->getUnwantedTvGenres());
 
-            return $genres
-                ->filter(function ($genre) use ($unwantedGenreIds) {
-                    return ! in_array($genre['id'], $unwantedGenreIds);
-                });
-        });
+        return $genres->filter(fn ($g) => ! in_array($g['id'], $unwanted));
     }
 
     public function getMoviesGenres()
     {
-        return Cache::remember('movie_genres', now()->addDay(), function () {
-            $list = $this->request('/genre/movie/list');
-            $genres = collect($list['genres'] ?? []);
+        $list = $this->request('/genre/movie/list');
+        $genres = collect($list['genres'] ?? []);
 
-            $unwantedGenreIds = explode(',', $this->getUnwantedMovieGenres());
+        $unwanted = explode(',', $this->getUnwantedMovieGenres());
 
-            return $genres
-                ->filter(function ($genre) use ($unwantedGenreIds) {
-                    return ! in_array($genre['id'], $unwantedGenreIds);
-                });
-        });
+        return $genres->filter(fn ($g) => ! in_array($g['id'], $unwanted));
     }
 
     protected function getUnwantedTvGenres()
@@ -266,20 +267,10 @@ class TMDBService
         return Cache::remember('unwanted_tv_genres', now()->addDay(), function () {
             $list = $this->request('/genre/tv/list');
 
-            $excludeNames = [
-                'Animation',
-                'Kids',
-                'News',
-                'Reality',
-                'Documentary',
-                'Talk',
-                'Soap',
-            ];
-
-            $genres = collect($list['genres'] ?? []);
-
-            return $genres
-                ->filter(fn ($genre) => in_array($genre['name'], $excludeNames))
+            return collect($list['genres'] ?? [])
+                ->filter(fn ($g) => in_array($g['name'], [
+                    'Animation', 'Kids', 'News', 'Reality', 'Documentary', 'Talk', 'Soap',
+                ]))
                 ->pluck('id')
                 ->implode(',');
         });
@@ -290,19 +281,12 @@ class TMDBService
         return Cache::remember('unwanted_movie_genres', now()->addDay(), function () {
             $list = $this->request('/genre/movie/list');
 
-            $excludeNames = [
-                'Animation',
-                'Documentary',
-                'Music',
-            ];
-
-            $genres = collect($list['genres'] ?? []);
-
-            return $genres
-                ->filter(fn ($genre) => in_array($genre['name'], $excludeNames))
+            return collect($list['genres'] ?? [])
+                ->filter(fn ($g) => in_array($g['name'], [
+                    'Animation', 'Documentary', 'Music',
+                ]))
                 ->pluck('id')
                 ->implode(',');
         });
     }
-
 }

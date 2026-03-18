@@ -49,6 +49,10 @@
                 </a>
             </div>
         </div>
+
+        <div class="my-4 text-xs text-gray-500 md:mt-0 flex items-center justify-center">
+            Built using Laravel {{ app()->version() }}, and Livewire {{ \Composer\InstalledVersions::getPrettyVersion('livewire/livewire') }}
+        </div>
     </footer>
 
     @livewireScripts

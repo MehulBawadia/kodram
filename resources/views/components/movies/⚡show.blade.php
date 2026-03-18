@@ -49,7 +49,7 @@ new class extends Component
 <div>
     <div wire:init="loadHeroSection">
         <div wire:cloak wire:show="!heroSectionLoaded">
-            <livewire:movies.heroloader />
+            <livewire:common.heroloader />
         </div>
 
         <div wire:cloak wire:show="heroSectionLoaded">
@@ -60,6 +60,14 @@ new class extends Component
     </div>
 
     <div wire:init="loadCastSection" class="mt-16">
-        <livewire:movies.cast :castSection="$castSection" :castSectionLoaded="$castSectionLoaded" />
+        <div wire:cloak wire:show="!castSectionLoaded">
+            <livewire:common.cardloader />
+        </div>
+
+        <div wire:cloak wire:show="castSectionLoaded">
+            @if (! blank($castSection))
+                <livewire:common.castcard :castSection="$castSection" :castSectionLoaded="$castSectionLoaded" />
+            @endif
+        </div>
     </div>
 </div>

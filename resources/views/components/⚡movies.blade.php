@@ -130,76 +130,20 @@ new class extends Component {
         </div>
 
         <div class="mt-10 relative">
-            @if($refreshing)
-                <div class="absolute inset-0 bg-black/50 backdrop-blur-sm z-20 flex items-center justify-center" wire:target="loadMovies">
-                    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6 w-full px-4">
-                        @for($i = 0; $i < 5; $i++)
-                            <div class="rounded-2xl overflow-hidden shimmer">
-                                <div class="h-64"></div>
-                                <div class="p-4 space-y-3">
-                                    <div class="h-4 bg-gray-700 rounded w-3/4"></div>
-                                    <div class="h-4 bg-gray-700 rounded w-1/2"></div>
-                                </div>
-                            </div>
-                        @endfor
-                    </div>
-                </div>
+            <div wire:show="refreshing || loadingMore">
+                <livewire:common.cardloader />
+            </div>
+
+            <div wire:show="!refreshing && !loadingMore">
+                <livewire:common.moviecard :shows="$movies" />
+            </div>
+
+            @if($hasMorePages)
+                <div class="col-span-full mt-10" wire:key="loader-{{ $page }}" x-data x-intersect.once="$wire.loadMovies()"></div>
             @endif
 
-            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
-                @foreach($movies as $index => $show)
-                    <a href="{{ route('movies.show', $show['id']) }}" class="relative group rounded-2xl overflow-hidden cursor-pointer" wire:key="drama-{{ $show['id'] }}-{{ $index }}">
-
-                        <img src="https://image.tmdb.org/t/p/w500{{ $show['poster_path'] }}" alt="{{ $show['title'] }}" class="w-full aspect-2/3 object-cover transition duration-500 ease-out group-hover:scale-110" />
-
-                        <div class="absolute inset-0 bg-linear-to-t from-black/90 via-black/40 to-transparent transition-opacity duration-500 opacity-80 group-hover:opacity-100"></div>
-
-                        <div class="absolute inset-0 flex flex-col justify-end p-5 text-white">
-                            <div class="transform transition-all duration-500 ease-[cubic-bezier(.22,1,.36,1)] translate-y-2/3 group-hover:translate-y-0">
-
-                                <h3 class="font-bold text-lg leading-tight">
-                                    {{ $show['title'] }}
-                                </h3>
-
-                                <div class="mt-3 text-sm text-gray-300 opacity-0 transition-all duration-500 delay-150 ease-out group-hover:opacity-100 group-hover:-translate-y-1 group-hover:scale-105 group-hover:brightness-110">
-                                    <div class="flex items-center space-x-2">
-                                        @if(!empty($show['release_date']))
-                                            <span>{{ \Carbon\Carbon::parse($show['release_date'])->format('Y') }}</span>
-                                        @endif
-
-                                        <span>⭐ {{ number_format($show['vote_average'], 1) }}</span>
-                                    </div>
-
-                                    @if(!empty($show['overview']))
-                                        <p class="mt-2 text-xs line-clamp-3 text-gray-400">
-                                            {{ $show['overview'] }}
-                                        </p>
-                                    @endif
-                                </div>
-                            </div>
-                        </div>
-                    </a>
-                @endforeach
-
-                @if($hasMorePages)
-                    <div class="col-span-full mt-10" wire:key="loader-{{ $page }}" x-data x-intersect.once="$wire.loadMovies()"></div>
-                @endif
-
-                <div wire:loading wire:target="loadMovies" class="col-span-full">
-                    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
-                        @for($i = 0; $i < 5; $i++)
-                            <div class="rounded-2xl overflow-hidden shimmer">
-                                <div class="rounded-2xl overflow-hidden shimmer">
-                                    <div class="h-64"></div>
-                                    <div class="p-4 space-y-3">
-                                        <div class="h-4 bg-gray-700 rounded w-3/4"></div>
-                                        <div class="h-4 bg-gray-700 rounded w-1/2"></div>
-                                    </div>
-                                </div>
-                            </div>
-                        @endfor
-                    </div>
-                </div>
+            <div class="w-full" wire:loading wire:target="loadMovies">
+                <livewire:common.cardloader />
             </div>
         </div>
     </div>

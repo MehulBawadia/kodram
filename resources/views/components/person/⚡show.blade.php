@@ -27,7 +27,6 @@ new class extends Component
         $tmdb = app(TMDBService::class);
 
         $this->person = $tmdb->getPersonDetails($this->personId);
-        // dd($this->person);
     }
 
     public function loadHeroSection()
@@ -86,7 +85,7 @@ new class extends Component
 <div>
     <div wire:init="loadHeroSection">
         <div wire:cloak wire:show="!heroSectionLoaded">
-            <livewire:person.heroloader />
+            <livewire:common.heroloader />
         </div>
 
         <div wire:cloak wire:show="heroSectionLoaded">
@@ -102,7 +101,7 @@ new class extends Component
         </h2>
 
         <div wire:cloak wire:show="!tvSeriesLoaded">
-            <livewire:person.tvloader />
+            <livewire:common.cardloader />
         </div>
 
         <div wire:cloak wire:show="tvSeriesLoaded">
@@ -118,7 +117,7 @@ new class extends Component
         </h2>
 
         <div wire:cloak wire:show="!moviesLoaded">
-            <livewire:person.movieloader />
+            <livewire:common.cardloader />
         </div>
 
         <div wire:cloak wire:show="moviesLoaded">

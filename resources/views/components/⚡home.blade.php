@@ -113,226 +113,58 @@ new class extends Component {
     </div>
 
     <div wire:init="loadPopularTv" class="mt-16">
-        <div class="">
-            <h2 class="text-2xl font-bold text-white mb-6">
-                Popular TV Shows
-            </h2>
+        <h2 class="text-2xl font-bold text-white mb-6">
+            Popular TV Shows
+        </h2>
 
-            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
-                @if(!$popularTvLoaded)
-                    @for($i = 0; $i < 5; $i++)
-                        <div class="rounded-xl overflow-hidden shimmer">
-                            <div class="h-64"></div>
-                            <div class="p-4 space-y-3">
-                                <div class="h-4 bg-gray-700 rounded w-3/4"></div>
-                                <div class="h-4 bg-gray-700 rounded w-1/2"></div>
-                            </div>
-                        </div>
-                    @endfor
-                @endif
+        <div wire:show="!popularTvLoaded">
+            <livewire:common.cardloader />
+        </div>
 
-                @if($popularTvLoaded)
-                    @foreach($popularTv as $show)
-                        <a href="{{ route('dramas.show', $show['id']) }}" class="relative group rounded-2xl overflow-hidden cursor-pointer">
-                            <img src="https://image.tmdb.org/t/p/w500{{ $show['poster_path'] }}" class="w-full aspect-2/3 object-cover transition duration-500 ease-out group-hover:scale-110" alt="{{ $show['name'] }}" />
-
-                            <div class="absolute inset-0 bg-linear-to-t from-black/90 via-black/40 to-transparent transition-opacity duration-500 opacity-80 group-hover:opacity-100"></div>
-
-                            <div class="absolute inset-0 flex flex-col justify-end p-5 text-white">
-                                <div class="transform transition-all duration-500 ease-[cubic-bezier(.22,1,.36,1)] translate-y-2/3 group-hover:translate-y-0">
-                                    <h3 class="font-bold text-lg leading-tight transition-all duration-300">
-                                        {{ $show['name'] }}
-                                    </h3>
-
-                                    <div class="mt-3 text-sm text-gray-300 opacity-0 transition-all duration-500 delay-150 ease-out group-hover:opacity-100 group-hover:-translate-y-1 group-hover:scale-105 group-hover:brightness-110">
-                                        <div class="flex items-center space-x-2">
-                                            @if(!empty($show['first_air_date']))
-                                                <span>{{ \Carbon\Carbon::parse($show['first_air_date'])->format('Y') }}</span>
-                                            @endif
-                                            <span>•</span>
-                                            <span>⭐ {{ number_format($show['vote_average'], 1) }}</span>
-                                        </div>
-
-                                        @if(!empty($show['overview']))
-                                            <p class="mt-2 text-xs line-clamp-3 text-gray-400">
-                                                {{ $show['overview'] }}
-                                            </p>
-                                        @endif
-                                    </div>
-                                </div>
-                            </div>
-                        </a>
-                    @endforeach
-                @endif
-            </div>
+        <div wire:show="popularTvLoaded">
+            <livewire:common.tvcard :shows="$popularTv" />
         </div>
     </div>
 
     <div wire:init="loadLatestTv" class="mt-16">
-        <div class="">
-            <h2 class="text-2xl font-bold text-white mb-6">
-                Latest Finished TV Shows
-            </h2>
+        <h2 class="text-2xl font-bold text-white mb-6">
+            Latest Finished TV Shows
+        </h2>
 
-            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
-                @if(!$latestTvLoaded)
-                    @for($i = 0; $i < 5; $i++)
-                        <div class="rounded-xl overflow-hidden shimmer">
-                            <div class="h-64"></div>
-                            <div class="p-4 space-y-3">
-                                <div class="h-4 bg-gray-700 rounded w-3/4"></div>
-                                <div class="h-4 bg-gray-700 rounded w-1/2"></div>
-                            </div>
-                        </div>
-                    @endfor
-                @endif
+        <div wire:show="!latestTvLoaded">
+            <livewire:common.cardloader />
+        </div>
 
-                @if($latestTvLoaded)
-                    @foreach($latestTv as $show)
-                        <a href="{{ route('dramas.show', $show['id']) }}" class="relative group rounded-2xl overflow-hidden cursor-pointer">
-                            <img src="https://image.tmdb.org/t/p/w500{{ $show['poster_path'] }}" class="w-full aspect-2/3 object-cover transition duration-500 ease-out group-hover:scale-110" alt="{{ $show['name'] }}" />
-
-                            <div class="absolute inset-0 bg-linear-to-t from-black/90 via-black/40 to-transparent transition-opacity duration-500 opacity-80 group-hover:opacity-100"></div>
-
-                            <div class="absolute inset-0 flex flex-col justify-end p-5 text-white">
-                                <div class="transform transition-all duration-500 ease-[cubic-bezier(.22,1,.36,1)] translate-y-2/3 group-hover:translate-y-0">
-                                    <h3 class="font-bold text-lg leading-tight transition-all duration-300">
-                                        {{ $show['name'] }}
-                                    </h3>
-
-                                    <div class="mt-3 text-sm text-gray-300 opacity-0 transition-all duration-500 delay-150 ease-out group-hover:opacity-100 group-hover:-translate-y-1 group-hover:scale-105 group-hover:brightness-110">
-                                        <div class="flex items-center space-x-2">
-                                            @if(!empty($show['first_air_date']))
-                                                <span>{{ \Carbon\Carbon::parse($show['first_air_date'])->format('Y') }}</span>
-                                            @endif
-                                            <span>•</span>
-                                            <span>⭐ {{ number_format($show['vote_average'], 1) }}</span>
-                                        </div>
-
-                                        @if(!empty($show['overview']))
-                                            <p class="mt-2 text-xs line-clamp-3 text-gray-400">
-                                                {{ $show['overview'] }}
-                                            </p>
-                                        @endif
-                                    </div>
-                                </div>
-                            </div>
-                        </a>
-                    @endforeach
-                @endif
-            </div>
+        <div wire:show="latestTvLoaded">
+            <livewire:common.tvcard :shows="$latestTv" />
         </div>
     </div>
 
     <div wire:init="loadPopularMovies" class="mt-32">
-        <div class="">
-            <h2 class="text-2xl font-bold text-white mb-6">
-                Popular Movies
-            </h2>
+        <h2 class="text-2xl font-bold text-white mb-6">
+            Popular Movies
+        </h2>
 
-            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
-                @if(!$popularMoviesLoaded)
-                    @for($i = 0; $i < 5; $i++)
-                        <div class="rounded-xl overflow-hidden shimmer">
-                            <div class="h-64"></div>
-                            <div class="p-4 space-y-3">
-                                <div class="h-4 bg-gray-700 rounded w-3/4"></div>
-                                <div class="h-4 bg-gray-700 rounded w-1/2"></div>
-                            </div>
-                        </div>
-                    @endfor
-                @endif
+        <div wire:show="!popularMoviesLoaded">
+            <livewire:common.cardloader />
+        </div>
 
-                @if($popularMoviesLoaded)
-                    @foreach($popularMovies as $show)
-                        <a href="{{ route('movies.show', $show['id']) }}" class="relative group rounded-2xl overflow-hidden cursor-pointer">
-                            <img src="https://image.tmdb.org/t/p/w500{{ $show['poster_path'] }}" class="w-full aspect-2/3 object-cover transition duration-500 ease-out group-hover:scale-110" alt="{{ $show['title'] }}" />
-
-                            <div class="absolute inset-0 bg-linear-to-t from-black/90 via-black/40 to-transparent transition-opacity duration-500 opacity-80 group-hover:opacity-100"></div>
-
-                            <div class="absolute inset-0 flex flex-col justify-end p-5 text-white">
-                                <div class="transform transition-all duration-500 ease-[cubic-bezier(.22,1,.36,1)] translate-y-2/3 group-hover:translate-y-0">
-                                    <h3 class="font-bold text-lg leading-tight transition-all duration-300">
-                                        {{ $show['title'] }}
-                                    </h3>
-
-                                    <div class="mt-3 text-sm text-gray-300 opacity-0 transition-all duration-500 delay-150 ease-out group-hover:opacity-100 group-hover:-translate-y-1 group-hover:scale-105 group-hover:brightness-110">
-                                        <div class="flex items-center space-x-2">
-                                            @if(!empty($show['release_date']))
-                                                <span>{{ \Carbon\Carbon::parse($show['release_date'])->format('Y') }}</span>
-                                            @endif
-                                            <span>•</span>
-                                            <span>⭐ {{ number_format($show['vote_average'], 1) }}</span>
-                                        </div>
-
-                                        @if(!empty($show['overview']))
-                                            <p class="mt-2 text-xs line-clamp-3 text-gray-400">
-                                                {{ $show['overview'] }}
-                                            </p>
-                                        @endif
-                                    </div>
-                                </div>
-                            </div>
-                        </a>
-                    @endforeach
-                @endif
-            </div>
+        <div wire:show="popularMoviesLoaded">
+            <livewire:common.moviecard :shows="$popularMovies" />
         </div>
     </div>
 
-    <div wire:init="loadLatestMovies" class="mt-32">
-        <div class="">
-            <h2 class="text-2xl font-bold text-white mb-6">
-                Latest Finished Movies
-            </h2>
+    <div wire:init="loadLatestMovies" class="mt-16">
+        <h2 class="text-2xl font-bold text-white mb-6">
+            Latest Finished Movies
+        </h2>
 
-            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
-                @if(!$latestMoviesLoaded)
-                    @for($i = 0; $i < 5; $i++)
-                        <div class="rounded-xl overflow-hidden shimmer">
-                            <div class="h-64"></div>
-                            <div class="p-4 space-y-3">
-                                <div class="h-4 bg-gray-700 rounded w-3/4"></div>
-                                <div class="h-4 bg-gray-700 rounded w-1/2"></div>
-                            </div>
-                        </div>
-                    @endfor
-                @endif
+        <div wire:show="!latestMoviesLoaded">
+            <livewire:common.cardloader />
+        </div>
 
-                @if($latestMoviesLoaded)
-                    @foreach($latestMovies as $show)
-                        <a href="{{ route('movies.show', $show['id']) }}" class="relative group rounded-2xl overflow-hidden cursor-pointer">
-                            <img src="https://image.tmdb.org/t/p/w500{{ $show['poster_path'] }}" class="w-full aspect-2/3 object-cover transition duration-500 ease-out group-hover:scale-110" alt="{{ $show['title'] }}" />
-
-                            <div class="absolute inset-0 bg-linear-to-t from-black/90 via-black/40 to-transparent transition-opacity duration-500 opacity-80 group-hover:opacity-100"></div>
-
-                            <div class="absolute inset-0 flex flex-col justify-end p-5 text-white">
-                                <div class="transform transition-all duration-500 ease-[cubic-bezier(.22,1,.36,1)] translate-y-2/3 group-hover:translate-y-0">
-                                    <h3 class="font-bold text-lg leading-tight transition-all duration-300">
-                                        {{ $show['title'] }}
-                                    </h3>
-
-                                    <div class="mt-3 text-sm text-gray-300 opacity-0 transition-all duration-500 delay-150 ease-out group-hover:opacity-100 group-hover:-translate-y-1 group-hover:scale-105 group-hover:brightness-110">
-                                        <div class="flex items-center space-x-2">
-                                            @if(!empty($show['release_date']))
-                                                <span>{{ \Carbon\Carbon::parse($show['release_date'])->format('Y') }}</span>
-                                            @endif
-                                            <span>•</span>
-                                            <span>⭐ {{ number_format($show['vote_average'], 1) }}</span>
-                                        </div>
-
-                                        @if(!empty($show['overview']))
-                                            <p class="mt-2 text-xs line-clamp-3 text-gray-400">
-                                                {{ $show['overview'] }}
-                                            </p>
-                                        @endif
-                                    </div>
-                                </div>
-                            </div>
-                        </a>
-                    @endforeach
-                @endif
-            </div>
+        <div wire:show="latestMoviesLoaded">
+            <livewire:common.moviecard :shows="$latestMovies" />
         </div>
     </div>
 </div>

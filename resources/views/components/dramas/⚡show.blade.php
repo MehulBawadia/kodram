@@ -82,7 +82,7 @@ new class extends Component
 <div>
     <div wire:init="loadHeroSection">
         <div wire:cloak wire:show="!heroSectionLoaded">
-            <livewire:dramas.heroloader />
+            <livewire:common.heroloader />
         </div>
 
         <div wire:cloak wire:show="heroSectionLoaded">
@@ -94,7 +94,7 @@ new class extends Component
 
     <div wire:init="loadSeasonSection">
         <div wire:cloak wire:show="!seasonsSectionLoaded">
-            <livewire:dramas.seasonloader />
+            <livewire:common.seasonloader />
         </div>
 
         <div wire:cloak wire:show="seasonsSectionLoaded">
@@ -105,6 +105,14 @@ new class extends Component
     </div>
 
     <div wire:init="loadCastSection" class="mt-16">
-        <livewire:dramas.cast :castSection="$castSection" :castSectionLoaded="$castSectionLoaded" />
+        <div wire:cloak wire:show="!castSectionLoaded">
+            <livewire:common.cardloader />
+        </div>
+
+        <div wire:cloak wire:show="castSectionLoaded">
+            @if (! blank($castSection))
+                <livewire:common.castcard :castSection="$castSection" :castSectionLoaded="$castSectionLoaded" />
+            @endif
+        </div>
     </div>
 </div>

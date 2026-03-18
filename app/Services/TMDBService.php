@@ -136,6 +136,21 @@ class TMDBService
         ]);
     }
 
+    public function getLatestTvSeries()
+    {
+        return $this->request('/discover/tv', [
+            'air_date.lte' => today()->toDateString(),
+            'with_original_language' => 'ko',
+            'watch_region' => 'KR',
+            'sort_by' => 'first_air_date.desc',
+            'with_runtime.gte' => 30,
+            'vote_count.gte' => 1,
+            'without_genres' => $this->getUnwantedTvGenres(),
+            'with_type' => '2|4', // 2 = miniseries, 4 = Scripted
+            'with_status' => '3', // 0 = OnGoing, 1 = Upcoming, 2 = In Production, 3 = Ended
+        ]);
+    }
+
     public function discoverDramas($year = null, $genres = [], $sort = 'popularity.desc', $page = 1)
     {
         $query = [
@@ -146,8 +161,8 @@ class TMDBService
             'vote_average.gte' => 3,
             'without_genres' => $this->getUnwantedTvGenres(),
             'page' => $page,
-            'with_type' => '2|4',
-            'with_status' => '0|1|2|3',
+            'with_type' => '2|4', // 2 = miniseries, 4 = Scripted
+            'with_status' => '0|1|2|3', // 0 = OnGoing, 1 = Upcoming, 2 = In Production, 3 = Ended
         ];
 
         if ($year) {

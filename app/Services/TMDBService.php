@@ -207,6 +207,19 @@ class TMDBService
         ]);
     }
 
+    public function getLatestMovies()
+    {
+        return $this->request('/discover/movie', [
+            'primary_release_date.lte' => today()->toDateString(),
+            'with_original_language' => 'ko',
+            'watch_region' => 'KR',
+            'sort_by' => 'primary_release_date.desc',
+            'vote_count.gte' => 1,
+            'without_genres' => $this->getUnwantedMovieGenres(),
+            'without_keywords' => '155477',
+        ]);
+    }
+
     public function discoverMovies($year = null, $genres = [], $sort = 'popularity.desc', $page = 1)
     {
         $query = [

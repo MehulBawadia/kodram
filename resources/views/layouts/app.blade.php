@@ -40,18 +40,9 @@
                 &copy; {{ now()->year }} {{ config('app.name') }}. All rights reserved.
             </p>
 
-            <div class="mt-4 flex gap-6 md:mt-0">
-                <a href="{{ url('/') }}" class="transition hover:text-indigo-400">
-                    Terms
-                </a>
-                <a href="{{ url('/') }}" class="transition hover:text-indigo-400">
-                    Privacy
-                </a>
+            <div class="mt-4 text-xs gap-6 md:mt-0">
+                Built by <a href="https://bmehul.com" class="inline underline hover:text-indigo-400" target="_blank">Mehul</a> using Laravel {{ app()->version() }}, and Livewire {{ \Composer\InstalledVersions::getPrettyVersion('livewire/livewire') }}
             </div>
-        </div>
-
-        <div class="my-4 text-xs text-gray-500 md:mt-0 flex items-center justify-center">
-            Built using Laravel {{ app()->version() }}, and Livewire {{ \Composer\InstalledVersions::getPrettyVersion('livewire/livewire') }}
         </div>
     </footer>
 

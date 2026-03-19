@@ -31,7 +31,7 @@ class TMDBService
         }
 
         // Small delay to prevent burst requests
-        usleep(100000); // 100ms
+        usleep(1000000); // 1000ms = 1s
 
         try {
             $response = Http::retry(

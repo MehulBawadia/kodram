@@ -5,6 +5,11 @@ A web application where users can view the details related to their favorite Kor
 The details are fetched from the [The Movie Database](https://themoviedb.org).
 Therefore, you will have to get the API Key and the Read Access Token after registering on their website.
 
+### Links
+
+- [Live Demo](https://kodram.bmehul.com)
+- [Case Study](https://bmehul.com/projects/korean-dramas-movies-discovery-web-app)
+
 ### Installation
 
 ```bash

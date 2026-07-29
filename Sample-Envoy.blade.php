@@ -4,15 +4,12 @@
     cd /home/username/domains/kodram
     echo "Inside kodram directory..."
 
-    rm -rf vendor/
-    echo "Removed vendor/ directory"
-
+    git fetch origin
     git reset --hard origin/main
-    echo "Removed any untracked files and/or folders"
+    git clean -fd
+    echo "Source code updated..."
 
-    git pull origin main
-
-    composer2 install --optimize-autoloader --no-dev
+    composer2 install --no-dev --prefer-dist --optimize-autoloader
 
     php artisan config:clear
     php artisan route:clear
@@ -22,7 +19,11 @@
     php artisan route:cache
     php artisan view:cache
 
-    export NVM_DIR="$([ -z "${XDG_CONFIG_HOME-}" ] && printf %s "${HOME}/.nvm" || printf %s "${XDG_CONFIG_HOME}/nvm")"
+    echo "Laravel cache rebuilt..."
+
+    echo "Check https://kodram.bmehul.com"
+
+    {{-- export NVM_DIR="$([ -z "${XDG_CONFIG_HOME-}" ] && printf %s "${HOME}/.nvm" || printf %s "${XDG_CONFIG_HOME}/nvm")"
     [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
     nvm use 25
 
@@ -36,5 +37,5 @@
     rm -rf node_modules/
     echo "Removed node_modules/ directory.."
 
-    echo "Check https://kodram.bmehul.com"
+    echo "Check https://kodram.bmehul.com" --}}
 @endtask

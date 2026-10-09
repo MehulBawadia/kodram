@@ -10,6 +10,9 @@
 
     <meta name="description" content="{{ $metaDescription ?? 'Explore Korean dramas and movies with detailed information, ratings, trailers and more.' }}">
 
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="{{ request()->url() }}" />
+
     <link rel="icon" type="image/ico" href="{{ asset('favicon.ico') }}" />
 
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
